@@ -16,16 +16,16 @@ module "eks-vpc" {
 
   // required tags for EKS
   tags = {
-    "kubernetes.io/cluster/eks-cluster" = "shared" // for K8s Cloud Controller Manager in Control Plane of EKS
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared" // for K8s Cloud Controller Manager in Control Plane of EKS
   }
 
   public_subnet_tags = {
-    "kubernetes.io/cluster/eks-cluster" = "shared" // for K8s Cloud Controller Manager in Control Plane of EKS
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared" // for K8s Cloud Controller Manager in Control Plane of EKS
     "kubernetes.io/role/elb" = 1 // for K8s to know which subnet is public and private
   }
 
   private_subnet_tags = {
-    "kubernetes.io/cluster/eks-cluster" = "shared" // for K8s Cloud Controller Manager in Control Plane of EKS
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared" // for K8s Cloud Controller Manager in Control Plane of EKS
     "kubernetes.io/role/internal-elb" = 1 // for K8s to know which subnet is public and private
   }
 }

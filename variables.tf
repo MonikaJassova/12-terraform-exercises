@@ -11,3 +11,7 @@ variable public_subnet_cidr_blocks {
 variable env_prefix {
     default = "dev"
 }
+
+variable cluster_name {
+  default = "eks-cluster"
+}
