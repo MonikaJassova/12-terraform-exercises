@@ -1,4 +1,12 @@
-### This project is for the Devops Bootcamp Exercise for "Infrastructure as Code with Terraform" 
+### This project is for the Devops Bootcamp Exercise for "Infrastructure as Code with Terraform"
+
+1. `terraform init` and `terraform apply` to:
+  - Create EKS cluster with 3 Nodes and 1 Fargate profile for java application
+  - Deploy Mysql with 3 replicas with volumes for data persistence using helm (depends on EKS cluster)
+1. Created a bucket on AWS S3 for shared Terraform state - enabled versioning and blocked all public access (left the default encryption type and disabled Bucket Key)
+1. Configured Amazon S3 as remote storage for Terraform state in [providers.tf](providers.tf)
+    - afterwards, to access remote state, ran `terraform init` and `terraform state list`
+1. Created [Jenkinsfile](Jenkinsfile) to provision declared infrastructure by running terraform commands
 
 #### IMPORTANT - please read the following:
 
