@@ -1,8 +1,5 @@
 // values taken from terraform.tfvars file
 variable vpc_cidr_block {}
-variable subnet_cidr_block {}
-variable avail_zone {}
+variable private_subnet_cidr_block {}
+variable public_subnet_cidr_block {}
 variable env_prefix {}
-variable my_ip {}
-variable instance_type {}
-variable public_key_location {}
