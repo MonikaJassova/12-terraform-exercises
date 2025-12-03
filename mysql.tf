@@ -1,13 +1,13 @@
 # This gives back object with certificate-authority among other attributes: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/eks_cluster#attributes-reference
 data "aws_eks_cluster" "cluster" {
-  name = module.eks.cluster_name
-  depends_on = [module.eks.cluster_name]
+  name = module.eks-cluster.cluster_name
+  depends_on = [module.eks-cluster.cluster_name]
 }
 
 # This gives us object with token: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/eks_cluster_auth#attributes-reference  
 data "aws_eks_cluster_auth" "cluster" {
-  name = module.eks.cluster_name
-  depends_on = [module.eks.cluster_name]
+  name = module.eks-cluster.cluster_name
+  depends_on = [module.eks-cluster.cluster_name]
 }
 
 provider "kubernetes" {
