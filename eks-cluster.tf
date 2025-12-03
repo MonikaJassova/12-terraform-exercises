@@ -72,13 +72,6 @@ module "eks-cluster" {
   }
 }
 
-# provider "kubernetes" {
-#   # host                   = module.eks-cluster.cluster_endpoint
-#   # cluster_ca_certificate = base64decode(module.eks-cluster.certificate_authority[0].data)
-#   # token                  = module.eks-cluster.token
-#   config_path = "~/.kube/config"
-# }
-
 # Deploy Cluster Autoscaler using Helm (post-cluster creation)
 resource "helm_release" "cluster_autoscaler" {
   name       = "cluster-autoscaler"
@@ -87,15 +80,16 @@ resource "helm_release" "cluster_autoscaler" {
   namespace  = "kube-system"
   version    = "9.52.1" # appVersion: 1.34.1
 
-  set {
-    name  = "autoDiscovery.clusterName"
-    value = module.eks-cluster.cluster_id
-  }
-
-  set {
-    name  = "awsRegion"
-    value = "eu-central-1"
-  }
+  set = [
+    {
+      name  = "autoDiscovery.clusterName"
+      value = module.eks-cluster.cluster_id
+    },
+    {
+      name  = "awsRegion"
+      value = "eu-central-1"
+    }
+  ]
 
   depends_on = [
     module.eks-cluster.eks_managed_node_groups,
