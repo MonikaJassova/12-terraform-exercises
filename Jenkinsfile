@@ -22,8 +22,13 @@ pipeline {
       steps {
         script {
           sh "terraform init"
-          echo '{"private_subnet_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"], "public_subnet_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"], "vpc_cidr_block": "10.0.0.0/16"}' > terraform.tfvars.json
-          sh "terraform plan --var-file=terraform.tfvars.json"
+          def privateList = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+          def publicList = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+          def privateJsonList = groovy.json.JsonOutput.toJson(privateList)
+          def publicJsonList = groovy.json.JsonOutput.toJson(publicList)
+          env.TF_VAR_private_subnet_cidr_blocks = privateJsonList
+          env.TF_VAR_public_subnet_cidr_blocks = publicJsonList
+          sh "terraform plan"
           // sh "terraform apply --auto-approve"
           // getting output value and setting as env var
           // EC2_PUBLIC_IP = sh(
