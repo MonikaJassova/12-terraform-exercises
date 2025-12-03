@@ -1,6 +1,3 @@
-variable private_subnet_cidr_blocks {}
-variable public_subnet_cidr_blocks {}
-
 data "aws_availability_zones" "azs" {}
 
 module "eks-vpc" {
