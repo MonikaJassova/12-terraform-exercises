@@ -18,13 +18,7 @@ pipeline {
       steps {
         script {
           sh "terraform init"
-          sh "terraform plan"
-          // sh "terraform apply --auto-approve"
-          // getting output value and setting as env var
-          // EC2_PUBLIC_IP = sh(
-          //   script: "terraform output ec2-public_ip",
-          //   returnStdout: true
-          // ).trim()
+          sh "terraform apply --auto-approve"
         }
       }
     }
