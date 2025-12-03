@@ -17,10 +17,6 @@ module "eks-cluster" {
     aws-ebs-csi-driver = {}
   }
 
-  iam_role_additional_policies = {
-    "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy": ""
-  }
-
   subnet_ids = module.eks-vpc.private_subnets // for Worker Nodes
   vpc_id = module.eks-vpc.vpc_id
 
@@ -40,7 +36,7 @@ module "eks-cluster" {
       tags = {
         Name = var.env_prefix
         # Required tags for Cluster Autoscaler
-        "k8s.io/cluster-autoscaler/${module.eks-cluster.cluster_id}" = "owned"
+        "k8s.io/cluster-autoscaler/${module.eks-cluster.cluster_name}" = "owned"
         "k8s.io/cluster-autoscaler/enabled"                  = "TRUE"
       }
 
