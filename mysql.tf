@@ -30,8 +30,10 @@ resource "helm_release" "mysql" {
   chart = "mysql"
   namespace = "default"
   timeout = "1000" # seconds
+  version    = "9.4.0"  # Legacy Bitnami MySQL chart version
 
   values = ["${file("mysql-values.yaml")}"]
 
-  depends_on = [module.eks-cluster.clusterName]
+  depends_on = [module.eks-cluster.clusterName, aws_eks_addon.ebs_csi_driver]
+  atomic = true
 }

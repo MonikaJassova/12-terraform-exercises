@@ -1,3 +1,52 @@
+resource "aws_eks_addon" "ebs_csi_driver" {
+  cluster_name             = module.eks-cluster.cluster_name
+  addon_name               = "aws-ebs-csi-driver"
+  addon_version            = "v1.53.0-eksbuild.1"
+  service_account_role_arn = aws_iam_role.ebs_csi_driver.arn
+}
+
+resource "aws_iam_role" "ebs_csi_driver" {
+  name               = "ebs-csi-driver"
+  assume_role_policy = data.aws_iam_policy_document.ebs_csi_driver_assume_role.json
+}
+
+locals {
+  oidc_issuer_no_scheme = replace(module.eks-cluster.cluster_oidc_issuer_url, "https://", "")
+}
+
+data "aws_iam_policy_document" "ebs_csi_driver_assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [module.eks-cluster.oidc_provider_arn]
+    }
+
+    actions = [
+      "sts:AssumeRoleWithWebIdentity",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.oidc_issuer_no_scheme}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.oidc_issuer_no_scheme}:sub"
+      values   = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+    }
+
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEBSCSIDriverPolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  role       = aws_iam_role.ebs_csi_driver.name
+}
+
 module "eks-cluster" {
   source  = "terraform-aws-modules/eks/aws"
   version = "21.10.0"
@@ -14,7 +63,6 @@ module "eks-cluster" {
     vpc-cni                = {
       before_compute = true
     }
-    aws-ebs-csi-driver = {}
   }
 
   subnet_ids = module.eks-vpc.private_subnets // for Worker Nodes
@@ -39,12 +87,6 @@ module "eks-cluster" {
         "k8s.io/cluster-autoscaler/${module.eks-cluster.cluster_name}" = "owned"
         "k8s.io/cluster-autoscaler/enabled"                  = "TRUE"
       }
-
-      # EBS CSI Driver policy
-      iam_role_additional_policies = {
-        AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-      }  
-
     }
   }
 
