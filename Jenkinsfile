@@ -7,18 +7,24 @@ library identifier: 'jenkins-shared-library@main', retriever: modernSCM(
 
 pipeline {   
   agent any
+  parameters {
+    choice(name: 'ENV', choices: ['dev', 'staging', 'test'], description: 'Target environment')
+  }
   stages {
-    stage("provision EKS") {
+    stage("provision TCP infrastructure") {
       environment {
-        // authentication to AWS for TF
-        AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
-        AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_secret_access_key')
-        TF_VAR_env_prefix = 'test'
+        // authentication to T Cloud Public for TF
+        OS_ACCESS_KEY = credentials('jenkins_tcp_access_key_id')
+        OS_SECRET_KEY = credentials('jenkins_tcp_secret_access_key')
+        OS_REGION     = 'eu-de'
+        // for OBS service
+        AWS_ACCESS_KEY_ID = credentials('jenkins_tcp_access_key_id')
+        AWS_SECRET_ACCESS_KEY = credentials('jenkins_tcp_secret_access_key')
       }
       steps {
         script {
-          sh "terraform init"
-          sh "terraform apply --auto-approve"
+          sh "terraform -chdir=environments/${params.ENV} init"
+          sh "terraform -chdir=environments/${params.ENV} apply --auto-approve"
         }
       }
     }

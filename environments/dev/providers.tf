@@ -1,0 +1,44 @@
+terraform {
+  required_version = ">= 1.3"
+
+  backend "local" {}
+
+  required_providers {
+    opentelekomcloud = {
+      source  = "opentelekomcloud/opentelekomcloud"
+      version = "~> 1.37.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "3.1.1"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.38.0"
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = "0.12.1"
+    }
+  }
+}
+
+provider "opentelekomcloud" {
+  region      = "eu-de"
+  auth_url    = "https://iam.eu-de.otc.t-systems.com/v3"
+  domain_name = "OTC-EU-DE-00000000001000047542"
+  tenant_name = "eu-de_mjassova"
+}
+
+locals {
+  kubeconfig = jsondecode(module.base.kubeconfig)
+}
+
+provider "helm" {
+  kubernetes = {
+    host               = "https://${module.base.cluster_eip}:5443"
+    insecure           = true
+    client_certificate = base64decode(local.kubeconfig.users[0].user["client-certificate-data"])
+    client_key         = base64decode(local.kubeconfig.users[0].user["client-key-data"])
+  }
+}

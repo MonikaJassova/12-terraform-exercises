@@ -1,0 +1,27 @@
+architecture: replication
+auth:
+  rootPassword: test-root-pass
+  database: test-app-db
+  username: test-user
+  password: test-pass
+
+volumePermissions:
+  enabled: false
+
+primary:
+  persistence:
+    enabled: false
+
+secondary:
+  replicaCount: 2
+  persistence:
+    storageClass: csi-disk
+    accessModes: ["ReadWriteOnce"]
+
+global:
+  security:
+    allowInsecureImages: True
+image:
+  registry: docker.io
+  tag: 8.0.30
+  repository: bitnamilegacy/mysql
