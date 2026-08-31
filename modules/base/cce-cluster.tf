@@ -53,15 +53,6 @@ resource "opentelekomcloud_cce_node_pool_v3" "this" {
   }
 }
 
-# resource "time_sleep" "wait_for_cluster_ready" {
-#   depends_on      = [opentelekomcloud_cce_node_pool_v3.this]
-#   create_duration = "300s"
-#
-#   triggers = {
-#     cluster_id = opentelekomcloud_cce_cluster_v3.this.id
-#   }
-# }
-
 # coredns and everest are pre-installed by CCE (required addons, `require: true`).
 # The provider's create POSTs /api/v3/addons unconditionally and fails with 409
 # "Addon instance has installed" on any cluster that already has them, so they

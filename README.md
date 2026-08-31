@@ -1,4 +1,4 @@
-# 12-terraform-exercises
+### This project is for the Devops Bootcamp Exercise for "Infrastructure as Code with Terraform"
 
 Covered:
 - IaC setup for deploying managed K8s clusters with 3 nodes (CCE with autoscaler on T Cloud Public) and MySQL DB (3 replicas with persistent volumes using Helm) across dev, staging, and test environments using Terraform
@@ -22,7 +22,8 @@ Covered:
 │   ├── staging/             # env_prefix=staging, CIDR 10.1.x,  k8s svc 10.84.0.0/16
 │   └── test/                # env_prefix=test, CIDR 10.2.x,  k8s svc 10.85.0.0/16
 ├── Jenkinsfile              # parameterized pipeline (ENV: dev/staging/test)
-├── mise.toml                # pinned tool versions (terraform, etc.)
+├── mise.toml                # pinned tool versions (terraform, etc.), non-sensitive environment variables
+├── .env                     # copied from .env.example, sensitive environment variables loaded by mise.toml  
 └── .gitignore
 ```
 
@@ -35,7 +36,6 @@ Each environment directory contains:
 | `main.tf` | Calls `module "base"` with the env's variables |
 | `mysql.tf` | `helm_release` for MySQL (depends on `module.base`) |
 | `mysql-values.yaml` | Per-env MySQL Helm values (root password, database name, credentials) |
-| `generate-kubeconfig.sh` | Regenerates `kubeconfig.yaml` for the cluster's external EIP endpoint |
 
 ## Environments
 
@@ -74,7 +74,21 @@ mise exec -- terraform -chdir=environments/dev init
 
 Run once per environment. Downloads provider plugins and connects to the remote OBS state backend (see [State](#state)).
 
-### 2. Generate kubeconfig (for kubectl only)
+### 2. Plan
+
+```bash
+mise exec -- terraform -chdir=environments/dev plan
+```
+
+### 3. Apply
+
+```bash
+mise exec -- terraform -chdir=environments/dev apply --auto-approve
+```
+
+A single apply creates the VPC, subnets, EIPs, NAT gateway, security groups, CCE cluster, node pool, and the autoscaler addon (coredns and everest are pre-installed by CCE), and then deploys the MySQL Helm release. No pre-step is needed on a fresh environment: the helm provider reads a fresh client certificate from the CCE kubeconfig data source during the apply.
+
+### 4. Generate kubeconfig (for kubectl only)
 
 The script below is only needed for kubectl access (local verification).
 
@@ -82,23 +96,7 @@ The script below is only needed for kubectl access (local verification).
 mise exec -- bash generate-kubeconfig.sh dev
 ```
 
-This writes `environments/dev/kubeconfig.yaml` (gitignored) pointing at the cluster's external EIP on port 5443.
-
-On a **first-time** deploy run it *after* the apply in step 4; on subsequent deploys only when the file is lost or its client certificate has expired.
-
-### 3. Plan
-
-```bash
-mise exec -- terraform -chdir=environments/dev plan
-```
-
-### 4. Apply
-
-```bash
-mise exec -- terraform -chdir=environments/dev apply --auto-approve
-```
-
-A single apply creates the VPC, subnets, EIPs, NAT gateway, security groups, CCE cluster, node pool, and the autoscaler addon (coredns and everest are pre-installed by CCE), and then deploys the MySQL Helm release. No pre-step is needed on a fresh environment: the helm provider reads a fresh client certificate from the CCE kubeconfig data source during the apply.
+This writes `environments/dev/kubeconfig.yaml` (gitignored) pointing at the cluster's external EIP on port 5443. On subsequent deploys run it only when the file is lost or its client certificate has expired.
 
 ### 5. Verify
 
@@ -127,11 +125,11 @@ terraform -chdir=environments/${ENV} init
 terraform -chdir=environments/${ENV} apply --auto-approve
 ```
 
-The pipeline expects the Jenkins credentials `jenkins_tcp_access_key_id` and `jenkins_tcp_secret_access_key` to be configured.
+The pipeline expects the Jenkins credentials `jenkins_tcp_access_key_id` and `jenkins_tcp_secret_access_key` to be configured and Terraform to be installed.
 
 ## State
 
-All environments use the **remote** S3 backend pointing at the OBS bucket `myapp-tf-exercises-tfstate-obs-bucket` (region `eu-de`, versioning enabled). Each environment keeps its state under its own key in the same bucket:
+All environments use the **remote** S3 backend pointing at the OBS bucket `myapp-tf-exercises-tfstate-obs-bucket` (region `eu-de`, private access only, versioning enabled). Each environment keeps its state under its own key in the same bucket:
 
 | Env | State key | Lock key |
 |-----|-----------|----------|
