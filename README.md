@@ -50,7 +50,7 @@ All environments use:
 - Node flavor `s3.large.2` (smallest available), 3 initial nodes, auto-scaling 1–4
 - CCE cluster flavor `cce.s1.small`
 - Key pair `KeyPair-mjassova2`
-- MySQL: 1 primary + 2 secondaries, Bitnami 8.0.30, no primary persistence, CSI-disk secondary persistence
+- MySQL: 1 primary + 2 secondaries, Bitnami 8.0.30, all replicas with CSI-disk persistent volumes
 
 ## Prerequisites
 
@@ -59,6 +59,7 @@ All environments use:
   - `OS_ACCESS_KEY`
   - `OS_SECRET_KEY`
   - `OS_REGION=eu-de`
+  - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` — same OTC keys, used by the TF s3 backend for the OBS state bucket
 - `python3` with PyYAML (for `generate-kubeconfig.sh`)
 
 ## Deploying an environment
@@ -71,7 +72,7 @@ All commands are run from the repo root and use `mise exec` to pick up the pinne
 mise exec -- terraform -chdir=environments/dev init
 ```
 
-Run once per environment. Downloads provider plugins and configures the local backend.
+Run once per environment. Downloads provider plugins and connects to the remote OBS state backend (see [State](#state)).
 
 ### 2. Generate kubeconfig (for kubectl only)
 
@@ -130,20 +131,37 @@ The pipeline expects the Jenkins credentials `jenkins_tcp_access_key_id` and `je
 
 ## State
 
-- Currently uses the **local** backend (`backend "local" {}` in each env's `providers.tf`).
-- To switch to OBS remote state, replace the backend block in each environment's `providers.tf`:
+All environments use the **remote** S3 backend pointing at the OBS bucket `myapp-tf-exercises-tfstate-obs-bucket` (region `eu-de`, versioning enabled). Each environment keeps its state under its own key in the same bucket:
 
-  ```hcl
-  backend "s3" {
-    bucket = "otc-tf-state-12-terraform-exercises"
-    prefix = "dev"           # dev / staging / test
-    region = "eu-de"
-    access_key = var.obs_access_key
-    secret_key = var.obs_secret_key
+| Env | State key | Lock key |
+|-----|-----------|----------|
+| dev | `dev/terraform.tfstate` | `dev/terraform.tfstate.tflock` |
+| staging | `staging/terraform.tfstate` | `staging/terraform.tfstate.tflock` |
+| test | `test/terraform.tfstate` | `test/terraform.tfstate.tflock` |
+
+Backend block (in each env's `providers.tf`):
+
+```hcl
+backend "s3" {
+  bucket                      = "myapp-tf-exercises-tfstate-obs-bucket"
+  key                         = "dev/terraform.tfstate"   # per env: dev / staging / test
+  region                      = "eu-de"
+  endpoints = {
+    s3 = "https://obs.eu-de.otc.t-systems.com/"
   }
-  ```
+  use_path_style              = true
+  use_lockfile                = true
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+  skip_region_validation      = true
+  skip_metadata_api_check     = true
+  skip_s3_checksum            = true
+}
+```
 
-  After changing the backend, run `terraform init -migrate-state` in the environment directory.
+- Credentials: the backend uses the standard AWS env-var chain — `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` (the same OTC access key; provided by `.env` via `mise.toml` locally and by Jenkins credentials in CI). No keys are stored in the configuration.
+- Locking: `use_lockfile` enables native S3 state locking; concurrent `plan`/`apply` on the same environment are serialized via the lock object.
+- **Terraform >= 1.11.2** bundles an AWS SDK that adds optional CRC32 checksums to uploads, which OBS does not handle correctly (corrupted state/lock objects). `mise.toml` and the `Jenkinsfile` therefore set `AWS_REQUEST_CHECKSUM_CALCULATION=when_required` and `AWS_RESPONSE_CHECKSUM_VALIDATION=when_required` (see the [OTC provider backends guide](https://registry.terraform.io/providers/opentelekomcloud/opentelekomcloud/latest/docs/guides/backends)).
 
 ## Everest CSI Driver
 

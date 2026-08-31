@@ -4,5 +4,7 @@ kubectl = "1.34"
 terraform = "1.12"
 
 [env]
-TF_VAR_key_pair_name = "KeyPair-mjassova2"
 _.file = ".env"
+TF_VAR_key_pair_name = "KeyPair-mjassova2"
+AWS_REQUEST_CHECKSUM_CALCULATION = "when_required"
+AWS_RESPONSE_CHECKSUM_VALIDATION = "when_required"

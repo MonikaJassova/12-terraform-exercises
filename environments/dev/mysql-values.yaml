@@ -10,7 +10,9 @@ volumePermissions:
 
 primary:
   persistence:
-    enabled: false
+    enabled: true
+    storageClass: csi-disk
+    accessModes: ["ReadWriteOnce"]
 
 secondary:
   replicaCount: 2

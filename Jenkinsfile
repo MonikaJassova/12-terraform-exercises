@@ -17,9 +17,12 @@ pipeline {
         OS_ACCESS_KEY = credentials('jenkins_tcp_access_key_id')
         OS_SECRET_KEY = credentials('jenkins_tcp_secret_access_key')
         OS_REGION     = 'eu-de'
-        // for OBS service
+        // for OBS service (TF s3 backend credential chain)
         AWS_ACCESS_KEY_ID = credentials('jenkins_tcp_access_key_id')
         AWS_SECRET_ACCESS_KEY = credentials('jenkins_tcp_secret_access_key')
+        // Terraform >= 1.11.2 SDK checksum defaults corrupt OBS uploads
+        AWS_REQUEST_CHECKSUM_CALCULATION = 'when_required'
+        AWS_RESPONSE_CHECKSUM_VALIDATION = 'when_required'
       }
       steps {
         script {

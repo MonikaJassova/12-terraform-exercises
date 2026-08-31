@@ -1,16 +1,18 @@
 architecture: replication
 auth:
-  rootPassword: prod-root-pass
-  database: prod-app-db
-  username: prod-user
-  password: prod-pass
+  rootPassword: staging-root-pass
+  database: staging-app-db
+  username: staging-user
+  password: staging-pass
 
 volumePermissions:
   enabled: false
 
 primary:
   persistence:
-    enabled: false
+    enabled: true
+    storageClass: csi-disk
+    accessModes: ["ReadWriteOnce"]
 
 secondary:
   replicaCount: 2

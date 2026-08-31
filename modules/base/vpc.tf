@@ -56,12 +56,26 @@ resource "opentelekomcloud_nat_gateway_v2" "this" {
   internal_network_id = opentelekomcloud_vpc_subnet_v1.public[0].network_id
 }
 
-resource "opentelekomcloud_nat_snat_rule_v2" "this" {
-  count = 3
-
+# SNAT rules are created one at a time: the OTC NAT service returns a
+# transient 500 when they are created in parallel on fresh applies.
+resource "opentelekomcloud_nat_snat_rule_v2" "private_0" {
   nat_gateway_id = opentelekomcloud_nat_gateway_v2.this.id
-  network_id     = opentelekomcloud_vpc_subnet_v1.private[count.index].network_id
+  network_id     = opentelekomcloud_vpc_subnet_v1.private[0].network_id
   floating_ip_id = opentelekomcloud_vpc_eip_v1.nat.id
+}
+
+resource "opentelekomcloud_nat_snat_rule_v2" "private_1" {
+  nat_gateway_id = opentelekomcloud_nat_gateway_v2.this.id
+  network_id     = opentelekomcloud_vpc_subnet_v1.private[1].network_id
+  floating_ip_id = opentelekomcloud_vpc_eip_v1.nat.id
+  depends_on     = [opentelekomcloud_nat_snat_rule_v2.private_0]
+}
+
+resource "opentelekomcloud_nat_snat_rule_v2" "private_2" {
+  nat_gateway_id = opentelekomcloud_nat_gateway_v2.this.id
+  network_id     = opentelekomcloud_vpc_subnet_v1.private[2].network_id
+  floating_ip_id = opentelekomcloud_vpc_eip_v1.nat.id
+  depends_on     = [opentelekomcloud_nat_snat_rule_v2.private_1]
 }
 
 resource "opentelekomcloud_vpc_secgroup_v3" "cluster" {

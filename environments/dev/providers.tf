@@ -1,7 +1,21 @@
 terraform {
   required_version = ">= 1.3"
 
-  backend "local" {}
+  backend "s3" {
+    bucket = "myapp-tf-exercises-tfstate-obs-bucket"
+    key    = "dev/terraform.tfstate"
+    region = "eu-de"
+    endpoints = {
+      s3 = "https://obs.eu-de.otc.t-systems.com/"
+    }
+    use_path_style              = true
+    use_lockfile                = true
+    skip_credentials_validation = true
+    skip_requesting_account_id  = true
+    skip_region_validation      = true
+    skip_metadata_api_check     = true
+    skip_s3_checksum            = true
+  }
 
   required_providers {
     opentelekomcloud = {
