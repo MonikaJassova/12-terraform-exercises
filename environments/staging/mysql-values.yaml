@@ -1,0 +1,29 @@
+architecture: replication
+auth:
+  rootPassword: staging-root-pass
+  database: staging-app-db
+  username: staging-user
+  password: staging-pass
+
+volumePermissions:
+  enabled: false
+
+primary:
+  persistence:
+    enabled: true
+    storageClass: csi-disk
+    accessModes: ["ReadWriteOnce"]
+
+secondary:
+  replicaCount: 2
+  persistence:
+    storageClass: csi-disk
+    accessModes: ["ReadWriteOnce"]
+
+global:
+  security:
+    allowInsecureImages: True
+image:
+  registry: docker.io
+  tag: 8.0.30
+  repository: bitnamilegacy/mysql

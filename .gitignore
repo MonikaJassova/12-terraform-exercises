@@ -7,3 +7,9 @@
 
 # TF var files (may contain sensitive data)
 *.tfvars
+
+# Generated kubeconfig files (may contain sensitive data)
+**/kubeconfig.yaml
+
+# local secrets loaded by mise.toml
+.env

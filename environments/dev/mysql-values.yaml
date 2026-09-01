@@ -1,0 +1,29 @@
+architecture: replication
+auth:
+  rootPassword: dev-root-pass
+  database: dev-app-db
+  username: dev-user
+  password: dev-pass
+
+volumePermissions:
+  enabled: false
+
+primary:
+  persistence:
+    enabled: true
+    storageClass: csi-disk
+    accessModes: ["ReadWriteOnce"]
+
+secondary:
+  replicaCount: 2
+  persistence:
+    storageClass: csi-disk
+    accessModes: ["ReadWriteOnce"]
+
+global:
+  security:
+    allowInsecureImages: True
+image:
+  registry: docker.io
+  tag: 8.0.30
+  repository: bitnamilegacy/mysql
