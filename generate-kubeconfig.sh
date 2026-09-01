@@ -25,6 +25,8 @@ module.base.cluster_eip
 EOF
 )
 
+# raw_kc is terraform console's output: the kubeconfig YAML JSON-encoded as a
+# quoted string. JSON is valid YAML, so parse the JSON wrapper first, then the YAML.
 printf '%s' "$raw_kc" | EIP="$eip" python3 -c '
 import json, os, sys, yaml
 raw = json.loads(sys.stdin.read().strip())

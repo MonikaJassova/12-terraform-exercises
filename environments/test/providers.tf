@@ -30,10 +30,8 @@ terraform {
 }
 
 provider "opentelekomcloud" {
-  region      = "eu-de"
-  auth_url    = "https://iam.eu-de.otc.t-systems.com/v3"
-  domain_name = "OTC-EU-DE-00000000001000047542"
-  tenant_name = "eu-de_mjassova"
+  region   = "eu-de"
+  auth_url = "https://iam.eu-de.otc.t-systems.com/v3"
 }
 
 locals {
@@ -42,9 +40,9 @@ locals {
 
 provider "helm" {
   kubernetes = {
-    host               = "https://${module.base.cluster_eip}:5443"
-    insecure           = true
-    client_certificate = base64decode(local.kubeconfig.users[0].user["client-certificate-data"])
-    client_key         = base64decode(local.kubeconfig.users[0].user["client-key-data"])
+    host                   = "https://${module.base.cluster_eip}:5443"
+    client_certificate     = base64decode(local.kubeconfig.users[0].user["client-certificate-data"])
+    client_key             = base64decode(local.kubeconfig.users[0].user["client-key-data"])
+    cluster_ca_certificate = base64decode(local.kubeconfig.clusters[0].cluster["certificate-authority-data"])
   }
 }

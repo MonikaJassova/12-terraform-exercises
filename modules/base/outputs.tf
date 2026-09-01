@@ -21,6 +21,7 @@ output "vpc_id" {
 output "kubeconfig" {
   description = "Raw CCE cluster kubeconfig YAML"
   value       = data.opentelekomcloud_cce_cluster_kubeconfig_v3.this.kubeconfig
+  sensitive   = true
 }
 
 output "project_id" {

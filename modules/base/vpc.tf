@@ -84,13 +84,13 @@ resource "opentelekomcloud_vpc_secgroup_v3" "cluster" {
 }
 
 resource "opentelekomcloud_vpc_secgroup_rule_v3" "cluster_inbound" {
-  count = 4
+  count = 3
 
   security_group_id = opentelekomcloud_vpc_secgroup_v3.cluster.id
-  direction         = ["ingress", "ingress", "ingress", "ingress"][count.index]
+  direction         = ["ingress", "ingress", "ingress"][count.index]
   ether_type        = "IPv4"
-  protocol          = ["tcp", "tcp", "tcp", "udp"][count.index]
-  multi_port        = ["443", "8443", "22", "53"][count.index]
+  protocol          = ["tcp", "tcp", "udp"][count.index]
+  multi_port        = ["443", "8443", "53"][count.index]
   remote_ip_prefix  = "0.0.0.0/0"
 
   # work around https://github.com/opentelekomcloud/terraform-provider-opentelekomcloud/issues/3529

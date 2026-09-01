@@ -31,6 +31,13 @@ resource "opentelekomcloud_cce_node_pool_v3" "this" {
   initial_node_count = var.initial_node_count
   availability_zone  = "random"
   key_pair           = var.key_pair_name
+  # CCE's managed node SG must stay attached: it carries the control-plane
+  # (API server -> kubelet) rules. The custom node SG adds the per-node
+  # restrictions on top.
+  security_group_ids = [
+    opentelekomcloud_cce_cluster_v3.this.security_group_node,
+    opentelekomcloud_vpc_secgroup_v3.node.id,
+  ]
 
   scale_enable             = true
   min_node_count           = var.min_node_count
@@ -62,19 +69,19 @@ data "opentelekomcloud_identity_project_v3" "this" {}
 
 resource "opentelekomcloud_cce_addon_v3" "autoscaler" {
   template_name    = "autoscaler"
-  template_version = "1.34.35"
+  template_version = var.autoscaler_template_version
   cluster_id       = opentelekomcloud_cce_cluster_v3.this.id
 
   values {
     basic = {
-      "cceEndpoint"     = "https://cce.eu-de.otc.t-systems.com"
-      "ecsEndpoint"     = "https://ecs.eu-de.otc.t-systems.com"
-      "image_version"   = "1.34.35"
-      "region"          = "eu-de"
-      "swr_addr"        = "swr.eu-de.otc.t-systems.com"
+      "cceEndpoint"     = var.autoscaler_cce_endpoint
+      "ecsEndpoint"     = var.autoscaler_ecs_endpoint
+      "image_version"   = var.autoscaler_image_version
+      "region"          = var.autoscaler_region
+      "swr_addr"        = var.autoscaler_swr_addr
       "swr_user"        = "cce-addons"
       "rbac_enabled"    = "true"
-      "cluster_version" = "v1.34"
+      "cluster_version" = var.autoscaler_cluster_version
     }
     custom_json = jsonencode({
       agencyConfigurations = [{
@@ -114,7 +121,7 @@ resource "opentelekomcloud_cce_addon_v3" "autoscaler" {
       scaleDownDelayAfterAdd            = 10
       scaleDownDelayAfterDelete         = 10
       scaleDownDelayAfterFailure        = 3
-      scaleDownEnabled                  = false
+      scaleDownEnabled                  = true
       scaleDownUnneededTime             = 10
       scaleDownUtilizationThreshold     = 0.5
       scaleUpCpuUtilizationThreshold    = 1

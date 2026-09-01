@@ -59,6 +59,8 @@ All environments use:
   - `OS_ACCESS_KEY`
   - `OS_SECRET_KEY`
   - `OS_REGION=eu-de`
+  - `OS_DOMAIN_NAME` — account domain name
+  - `OS_TENANT_NAME` — project (tenant) name
   - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` — same OTC keys, used by the TF s3 backend for the OBS state bucket
 - `python3` with PyYAML (for `generate-kubeconfig.sh`)
 
