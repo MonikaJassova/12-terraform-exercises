@@ -5,13 +5,13 @@
 # read, so this is NOT done by Terraform (a local_file would drift every plan).
 # Instead we fetch it on demand and store it in a gitignored file.
 #
-# Usage:  mise exec -- bash generate-kubeconfig.sh <env>   (env: dev|staging|test)
+# Usage:  mise exec -- bash generate-kubeconfig.sh <env>   (env: dev|staging|test|k8s)
 # Requires: python3 with PyYAML. Run from the project root.
 set -euo pipefail
 
 env="${1:-}"
-if [[ "$env" != "dev" && "$env" != "staging" && "$env" != "test" ]]; then
-  echo "Usage: $0 <dev|staging|test>" >&2
+if [[ "$env" != "dev" && "$env" != "staging" && "$env" != "test" && "$env" != "k8s" ]]; then
+  echo "Usage: $0 <dev|staging|test|k8s>" >&2
   exit 1
 fi
 cd "$(dirname "$0")/environments/$env"

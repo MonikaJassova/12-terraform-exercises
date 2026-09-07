@@ -119,6 +119,16 @@ resource "opentelekomcloud_vpc_secgroup_rule_v3" "node_inbound" {
   }
 }
 
+# ELB (LoadBalancer services) must reach worker-node NodePorts.
+resource "opentelekomcloud_vpc_secgroup_rule_v3" "node_inbound_nodeport" {
+  security_group_id = opentelekomcloud_vpc_secgroup_v3.node.id
+  direction         = "ingress"
+  ether_type        = "IPv4"
+  protocol          = "tcp"
+  multi_port        = "30000-32767"
+  remote_ip_prefix  = "0.0.0.0/0"
+}
+
 resource "opentelekomcloud_vpc_secgroup_rule_v3" "node_inbound_icmp" {
   security_group_id = opentelekomcloud_vpc_secgroup_v3.node.id
   direction         = "ingress"
